@@ -1,11 +1,619 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="id">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BombSkuy</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>BOMBSKUY</title>
+    <style>
+        :root {
+            --W: 1000px;
+            --H: 600px;
+            --brick: #c0392b;
+            --brick-dark: #8e2a1f
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: #d6d6d6
+        }
+
+        .stage {
+            width: var(--W);
+            height: var(--H);
+            background: #f2f2f2;
+            position: relative;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 18px 55px rgba(0, 0, 0, .25);
+            overflow: hidden
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        .card {
+            width: 430px;
+            text-align: center
+        }
+
+        .logo {
+            width: min(340px, 90%);
+            margin: 0 auto 18px;
+            display: block
+        }
+
+        .form {
+            display: grid;
+            gap: 10px
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 4px;
+            border: 2px solid var(--brick-dark);
+            background: linear-gradient(var(--brick), var(--brick-dark));
+            color: #fff;
+            outline: none
+        }
+
+        input::placeholder {
+            color: #ffd7c8
+        }
+
+        select {
+            appearance: none
+        }
+
+        select:focus {
+            background: #000;
+            color: #fff
+        }
+
+        button {
+            min-width: 120px;
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 4px;
+            background: #000;
+            color: #fff;
+            cursor: pointer
+        }
+
+        button:disabled {
+            opacity: .45;
+            cursor: not-allowed
+        }
+
+        .wide {
+            width: 100%;
+            margin-top: 6px
+        }
+
+        .ov {
+            position: absolute;
+            inset: 0;
+            display: none;
+            place-items: center;
+            background: rgba(0, 0, 0, .55);
+            z-index: 10
+        }
+
+        .ov.on {
+            display: grid
+        }
+
+        .m {
+            width: var(--W);
+            height: var(--H);
+            max-width: 100%;
+            max-height: 100%;
+            background: rgba(20, 20, 20, .95);
+            color: #fff;
+            position: relative
+        }
+
+        .x {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: #b40000;
+            display: grid;
+            place-items: center;
+            font-weight: 900;
+            font-size: 18px;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .pad {
+            padding: 90px 160px
+        }
+
+        .pad h2 {
+            margin: 0 0 14px;
+            font-size: 30px;
+            text-align: left
+        }
+
+        .pad ol {
+            margin: 0;
+            padding-left: 18px;
+            line-height: 1.75;
+            text-align: left;
+            font-size: 18px
+        }
+
+        .lb {
+            height: 100%;
+            display: grid;
+            place-items: center;
+            padding: 70px 0;
+            gap: 24px
+        }
+
+        .lb h1 {
+            margin: 0;
+            font-size: 44px;
+            font-weight: 800;
+            letter-spacing: .2px
+        }
+
+        .grid {
+            width: 560px;
+            display: grid;
+            grid-template-columns: 1.6fr .8fr .3fr .3fr .3fr;
+            gap: 8px 16px;
+            align-items: center
+        }
+
+        .th {
+            opacity: .95;
+            font-weight: 700
+        }
+
+        .icon {
+            display: grid;
+            place-items: center
+        }
+
+        .icon img {
+            width: 28px;
+            height: 28px;
+            image-rendering: pixelated
+        }
+
+        .rows {
+            grid-column: 1/-1;
+            display: grid;
+            grid-template-columns: inherit;
+            gap: 10px 16px;
+            max-height: 220px;
+            overflow: auto;
+            padding-right: 6px
+        }
+
+        .r {
+            display: contents
+        }
+
+        .cell {
+            padding: 6px 0;
+            font-weight: 700
+        }
+
+        .line {
+            grid-column: 1/-1;
+            height: 1px;
+            background: rgba(255, 255, 255, .25)
+        }
+
+        .lbBtns {
+            display: flex;
+            gap: 44px
+        }
+
+        .btn {
+            min-width: 170px;
+            border-radius: 4px;
+            font-weight: 800
+        }
+
+        .red {
+            background: #c74413
+        }
+
+        .blue {
+            background: #0b6aa8
+        }
+
+        .count {
+            height: 100%;
+            display: grid;
+            place-items: center;
+            font-size: 120px;
+            font-weight: 900
+        }
+
+        @media (max-width:1020px) {
+            .stage {
+                transform: scale(calc(min(1, (100vw-20px)/1000, (100vh-20px)/600)));
+                transform-origin: center
+            }
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 0;
+            margin-top: 6px
+        }
+
+        .row button {
+            width: 48.5%;
+            min-width: 0
+        }
+
+        .cell:nth-child(5n+3),
+        .cell:nth-child(5n+4),
+        .cell:nth-child(5n+5) {
+            text-align: center
+        }
+
+        .rows::-webkit-scrollbar {
+            width: 8px
+        }
+
+        .rows::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .25);
+            border-radius: 8px
+        }
+
+        /* GAME */
+        .game {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: stretch;
+            background: #fff
+        }
+
+        .board {
+            --T: 67px;
+            width: calc(var(--T)*11);
+            height: calc(var(--T)*9);
+            flex: 0 0 auto;
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(11, var(--T));
+            grid-template-rows: repeat(9, var(--T));
+            background: url("assets/images/background.jpg") no-repeat center/cover;
+            image-rendering: pixelated
+        }
+
+        .tile {
+            width: var(--T);
+            height: var(--T);
+            background-size: cover;
+            image-rendering: pixelated
+        }
+
+        .brick {
+            background-image: url("assets/images/wall.png")
+        }
+
+        .sprite {
+            position: absolute;
+            width: calc(var(--T)*.9);
+            height: calc(var(--T)*.9);
+            image-rendering: pixelated;
+            pointer-events: none
+        }
+
+        .hud {
+            flex: 1;
+            background: #3a3a3a;
+            color: #fff;
+            padding: 20px 18px
+        }
+
+        .hudTitle {
+            margin: 0 0 14px;
+            font-size: 34px;
+            letter-spacing: 1px
+        }
+
+        .meta {
+            line-height: 1.6;
+            margin-bottom: 14px
+        }
+
+        .hearts {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0 18px
+        }
+
+        .hearts img {
+            width: 34px;
+            height: 34px;
+            image-rendering: pixelated
+        }
+
+        .stats {
+            display: grid;
+            gap: 18px;
+            margin-top: 10px
+        }
+
+        .stat {
+            display: grid;
+            grid-template-columns: 56px 20px 1fr;
+            align-items: center;
+            font-size: 26px;
+            font-weight: 800
+        }
+
+        .stat img {
+            width: 46px;
+            height: 46px;
+            image-rendering: pixelated
+        }
+
+        .stat span {
+            display: grid;
+            place-items: center;
+            opacity: .9
+        }
+
+        .stat b {
+            justify-self: start
+        }
+    </style>
 </head>
+
 <body>
-    
+    <main class="stage">
+        <section id="welcome" class="card">
+            <img class="logo" src="assets/images/logo.png" alt="BOMBSKUY" />
+            <div class="form">
+                <input id="name" placeholder="Input Username" autocomplete="off" />
+                <select id="level">
+                    <option value="" selected disabled>Select Level</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+                <div class="row">
+                    <button id="play" disabled>Play</button>
+                    <button id="instr" type="button">Instruction</button>
+                </div>
+                <button id="lb" class="wide" type="button">Leaderboard</button>
+            </div>
+        </section>
+
+        <section id="game" class="game hidden" aria-label="Game">
+            <div id="board" class="board"></div>
+            <aside class="hud">
+                <h2 class="hudTitle">BOMSKUY</h2>
+                <div class="meta">
+                    <div><b>Player</b> : <span id="hudName">-</span></div>
+                    <div><b>Time</b> : <span id="hudTime">00:00</span></div>
+                </div>
+                <div id="hearts" class="hearts" aria-label="Hearts"></div>
+                <div class="stats">
+                    <div class="stat"><img src="assets/images/wall_crack.png" alt="Wall crack"><span>=</span><b
+                            id="cWall">0</b></div>
+                    <div class="stat"><img src="assets/images/tnt.png" alt="TNT"><span>=</span><b id="cTnt">0</b></div>
+                    <div class="stat"><img src="assets/images/ice.png" alt="Ice"><span>=</span><b id="cIce">0</b></div>
+                </div>
+            </aside>
+        </section>
+
+        <div id="instrOv" class="ov" role="dialog" aria-modal="true" aria-label="Instructions">
+            <div class="m">
+                <div class="x" data-close>✕</div>
+                <div class="pad">
+                    <h2>How to play game</h2>
+                    <ol>
+                        <li>Input Username</li>
+                        <li>Put the bomb</li>
+                        <li>Blow up as many walls as possible</li>
+                        <li>Blow up enemies</li>
+                        <li>Enjoy!</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div id="lbOv" class="ov" role="dialog" aria-modal="true" aria-label="Leaderboards">
+            <div class="m">
+                <div class="x" data-close>✕</div>
+                <div class="lb">
+                    <h1>Leaderboards</h1>
+                    <div class="grid">
+                        <div class="th">Player Name</div>
+                        <div class="th">Time</div>
+                        <div class="th icon"><img src="assets/images/wall_crack.png" alt="Wall" /></div>
+                        <div class="th icon"><img src="assets/images/tnt.png" alt="TNT" /></div>
+                        <div class="th icon"><img src="assets/images/ice.png" alt="Ice" /></div>
+                        <div id="lbRows" class="rows"></div>
+                    </div>
+                    <div class="lbBtns">
+                        <button id="playAgain" class="btn red">Play Again</button>
+                        <button id="lbReset" class="btn blue">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="cdOv" class="ov" role="dialog" aria-modal="true" aria-label="Countdown">
+            <div class="m">
+                <div class="count" id="countNum">3</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+        const nameI = $("#name"), lvl = $("#level"), play = $("#play"), welcome = $("#welcome"), gameWrap = $("#game"), board = $("#board");
+        const instrOv = $("#instrOv"), lbOv = $("#lbOv"), cdOv = $("#cdOv"), countNum = $("#countNum");
+        const hudName = $("#hudName"), hudTime = $("#hudTime"), heartsEl = $("#hearts");
+        const cWall = $("#cWall"), cTnt = $("#cTnt"), cIce = $("#cIce"), lbRows = $("#lbRows");
+
+        const open = (o, on) => o.classList.toggle("on", !!on);
+        const canPlay = _ => nameI.value.trim() && lvl.value;
+        const setPlayState = _ => play.disabled = !canPlay();
+
+        nameI.oninput = setPlayState;
+        lvl.onchange = _ => { lvl.blur(); setPlayState() };
+
+        $("#instr").onclick = _ => open(instrOv, 1);
+        $("#lb").onclick = _ => { renderLB(); open(lbOv, 1) };
+        addEventListener("click", e => {
+            const ov = e.target.closest(".ov");
+            if (e.target.matches("[data-close]") || e.target === ov) open(ov, 0);
+        });
+        addEventListener("keydown", e => e.key === "Escape" && [instrOv, lbOv, cdOv].forEach(o => open(o, 0)));
+
+        /* leaderboard */
+        const KEY = "BOMBSKUY_LB";
+        const getLB = _ => JSON.parse(localStorage.getItem(KEY) || "[]");
+        const setLB = a => localStorage.setItem(KEY, JSON.stringify(a));
+        function renderLB() {
+            const d = getLB();
+            lbRows.innerHTML = d.length ? d.map((x, i) => `
+    <div class="r">
+      <div class="cell">${x.n}</div><div class="cell">${x.t}</div>
+      <div class="cell">${x.w}</div><div class="cell">${x.b}</div><div class="cell">${x.i}</div>
+      ${i < d.length - 1 ? `<div class="line"></div>` : ""}
+    </div>`).join("")
+                : `<div class="cell" style="grid-column:1/-1;opacity:.8">No data</div>`;
+        }
+        $("#lbReset").onclick = _ => { setLB([]); renderLB() };
+
+        /* ===== GAME CORE ===== */
+        const W = 11, H = 9, T = 67;                       // T harus match CSS --T
+        const SAFE = [[1, 1], [2, 1], [3, 1], [1, 2], [1, 3]]; // spawn + kanan + bawah (FIX)
+        const inSafe = (x, y) => SAFE.some(p => p[0] == x && p[1] == y);
+        const dogCount = l => ({ Easy: 1, Medium: 2, Hard: 3 }[l] || 1);
+
+        let map = [], player, dogs = [], tick, t0;
+
+        function buildStoneMap() {
+            map = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => {
+                const b = !x || !y || x == W - 1 || y == H - 1, p = x % 2 == 0 && y % 2 == 0;
+                return (b || p) ? 1 : 0;
+            }));
+            SAFE.forEach(([x, y]) => map[y][x] = 0);      // pastikan safe kosong
+        }
+
+        function placeRandomBricks(target = 18) {
+            for (let p = 0; p < target;) {
+                const x = 1 + Math.random() * (W - 2) | 0, y = 1 + Math.random() * (H - 2) | 0;
+                if (map[y][x] == 0 && !inSafe(x, y)) map[y][x] = 2, p++;  // FIX: hindari safe
+            }
+        }
+
+        function drawBoard() {
+            board.innerHTML = ""; board.style.setProperty("--T", T + "px");
+            for (let y = 0; y < H; y++)for (let x = 0; x < W; x++)if (map[y][x] == 2) {
+                const d = document.createElement("div");
+                d.className = "tile brick"; d.style.cssText = `position:absolute;left:${x * T}px;top:${y * T}px`;
+                board.appendChild(d);
+            }
+        }
+
+        const addSprite = (src, x, y) => {
+            const img = document.createElement("img");
+            img.src = src; img.className = "sprite";
+            img.style.cssText = `left:${x * T}px;top:${y * T}px`;
+            board.appendChild(img); return img;
+        };
+
+        function initHUD() {
+            hudName.textContent = nameI.value.trim();
+            hudTime.textContent = "00:00";
+            heartsEl.innerHTML = `<img src="assets/images/heart_full.png" alt=""><img src="assets/images/heart_full.png" alt=""><img src="assets/images/heart_full.png" alt="">`;
+            cWall.textContent = cTnt.textContent = cIce.textContent = "0";
+        }
+
+        function startTimer() {
+            t0 = Date.now(); clearInterval(tick);
+            tick = setInterval(_ => {
+                const s = (Date.now() - t0) / 1000 | 0, mm = String(s / 60 | 0).padStart(2, "0"), ss = String(s % 60).padStart(2, "0");
+                hudTime.textContent = `${mm}:${ss}`;
+            }, 250);
+        }
+
+        function spawnPlayer() { player = { x: 1, y: 1, img: addSprite("assets/images/char_down.png", 1, 1) } }
+
+        function randEmptyCell() {
+            for (let t = 0; t < 600; t++) {
+                const x = 1 + Math.random() * (W - 2) | 0, y = 1 + Math.random() * (H - 2) | 0;
+                if (map[y][x] == 0 && !inSafe(x, y)) return { x, y };
+            }
+            return { x: W - 2, y: H - 2 };
+        }
+
+        function spawnDogs(n) {
+            dogs = [];
+            while (dogs.length < n) {
+                const { x, y } = randEmptyCell();                       // FIX: otomatis hindari safe
+                if (!(x == 1 && y == 1)) dogs.push({ x, y, img: addSprite("assets/images/dog_down.png", x, y) });
+            }
+        }
+
+        function rebuildAndRender() {
+            buildStoneMap(); placeRandomBricks(); drawBoard();
+            spawnPlayer(); spawnDogs(dogCount(lvl.value));
+        }
+
+        /* movement */
+        const canMove = (x, y) => x >= 0 && y >= 0 && x < W && y < H && map[y][x] == 0;
+        function move(dx, dy, src) {
+            const nx = player.x + dx, ny = player.y + dy; player.img.src = src;
+            if (canMove(nx, ny)) {
+                player.x = nx; player.y = ny;
+                player.img.style.left = player.x * T + "px";
+                player.img.style.top = player.y * T + "px";
+            }
+        }
+        addEventListener("keydown", e => {
+            if (gameWrap.classList.contains("hidden")) return;
+            const k = e.key.toLowerCase();
+            if (k == "arrowup" || k == "w") return move(0, -1, "assets/images/char_up.png");
+            if (k == "arrowdown" || k == "s") return move(0, 1, "assets/images/char_down.png");
+            if (k == "arrowleft" || k == "a") return move(-1, 0, "assets/images/char_left.png");
+            if (k == "arrowright" || k == "d") return move(1, 0, "assets/images/char_right.png");
+        });
+
+        /* start flow */
+        async function startGame() {
+            open(instrOv, 0); open(lbOv, 0);
+            welcome.classList.add("hidden"); gameWrap.classList.add("hidden");
+            open(cdOv, 1);
+            for (let n = 3; n >= 1; n--) { countNum.textContent = n; await new Promise(r => setTimeout(r, 650)); }
+            open(cdOv, 0);
+            gameWrap.classList.remove("hidden");
+            initHUD(); rebuildAndRender(); startTimer();
+        }
+        play.onclick = startGame;
+    </script>
 </body>
+
 </html>
