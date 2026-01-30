@@ -101,6 +101,17 @@
             margin-top: 6px
         }
 
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px
+        }
+
+        .row button {
+            width: 48.5%;
+            min-width: 0
+        }
+
         .ov {
             position: absolute;
             inset: 0;
@@ -156,6 +167,14 @@
             line-height: 1.75;
             text-align: left;
             font-size: 18px
+        }
+
+        .count {
+            height: 100%;
+            display: grid;
+            place-items: center;
+            font-size: 120px;
+            font-weight: 900
         }
 
         .lb {
@@ -222,10 +241,27 @@
             background: rgba(255, 255, 255, .25)
         }
 
+        .cell:nth-child(5n+3),
+        .cell:nth-child(5n+4),
+        .cell:nth-child(5n+5) {
+            text-align: center
+        }
+
+        .rows::-webkit-scrollbar {
+            width: 8px
+        }
+
+        .rows::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .25);
+            border-radius: 8px
+        }
+
         .lbBtns {
             display: flex;
-            gap: 44px;
-            align-items: center
+            gap: 18px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap
         }
 
         .btn {
@@ -240,48 +276,6 @@
 
         .blue {
             background: #0b6aa8
-        }
-
-        .count {
-            height: 100%;
-            display: grid;
-            place-items: center;
-            font-size: 120px;
-            font-weight: 900
-        }
-
-        @media (max-width:1020px) {
-            .stage {
-                transform: scale(calc(min(1, (100vw-20px)/1000, (100vh-20px)/600)));
-                transform-origin: center
-            }
-        }
-
-        .row {
-            display: flex;
-            justify-content: space-between;
-            gap: 0;
-            margin-top: 6px
-        }
-
-        .row button {
-            width: 48.5%;
-            min-width: 0
-        }
-
-        .cell:nth-child(5n+3),
-        .cell:nth-child(5n+4),
-        .cell:nth-child(5n+5) {
-            text-align: center
-        }
-
-        .rows::-webkit-scrollbar {
-            width: 8px
-        }
-
-        .rows::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, .25);
-            border-radius: 8px
         }
 
         .game {
@@ -317,22 +311,31 @@
             background-image: url("assets/images/wall.png")
         }
 
-        .sprite {
+        .entity {
             position: absolute;
             width: calc(var(--T)*.9);
             height: calc(var(--T)*.9);
             image-rendering: pixelated;
-            pointer-events: none;
+            pointer-events: none
+        }
+
+        .sprite {
             z-index: 2
         }
 
         .bomb {
-            position: absolute;
-            width: calc(var(--T)*.9);
-            height: calc(var(--T)*.9);
-            image-rendering: pixelated;
-            pointer-events: none;
             z-index: 3
+        }
+
+        .fx {
+            z-index: 5
+        }
+
+        .mark {
+            width: calc(var(--T)*.42);
+            height: calc(var(--T)*.42);
+            z-index: 8;
+            filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35))
         }
 
         .bomb.blink {
@@ -343,25 +346,6 @@
             to {
                 filter: hue-rotate(330deg) saturate(3) brightness(1.2) drop-shadow(0 0 6px #f00)
             }
-        }
-
-        .fx {
-            position: absolute;
-            width: calc(var(--T)*.9);
-            height: calc(var(--T)*.9);
-            image-rendering: pixelated;
-            pointer-events: none;
-            z-index: 5
-        }
-
-        .mark {
-            position: absolute;
-            width: calc(var(--T)*.42);
-            height: calc(var(--T)*.42);
-            image-rendering: pixelated;
-            pointer-events: none;
-            z-index: 8;
-            filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35))
         }
 
         .walk {
@@ -456,30 +440,38 @@
             justify-self: start
         }
 
-        .go {
+        .go,
+        .pause {
             width: 100%;
             height: 100%;
             display: grid;
             place-items: center
         }
 
-        .go .c {
+        .go .c,
+        .pause .c {
             display: grid;
             place-items: center;
             text-align: center;
             gap: 14px
         }
 
-        .go h1 {
+        .go h1,
+        .pause h1 {
             margin: 0;
             font-size: 54px;
             font-weight: 900
         }
 
-        .go p {
+        .go p,
+        .pause p {
             margin: 0;
             opacity: .9;
             font-weight: 700
+        }
+
+        .pause p {
+            font-size: 18px
         }
 
         .go .sc {
@@ -499,15 +491,22 @@
             font-size: 34px
         }
 
-        .go .btns {
+        .go .btns,
+        .pause .btns {
             display: flex;
             gap: 18px;
             justify-content: center;
-            margin-top: 10px
+            margin-top: 10px;
+            flex-wrap: wrap
         }
 
         .go .btns button {
             min-width: 200px;
+            font-weight: 900
+        }
+
+        .pause .btns button {
+            min-width: 220px;
             font-weight: 900
         }
 
@@ -518,22 +517,31 @@
         .go .btns .l {
             background: #0b6aa8
         }
+
+        @media(max-width:1020px) {
+            .stage {
+                transform: scale(calc(min(1, (100vw-20px)/1000, (100vh-20px)/600)));
+                transform-origin: center
+            }
+        }
     </style>
 </head>
 
 <body>
     <main class="stage">
-        <section id="welcome" class="card"><img class="logo" src="assets/images/logo.png" alt="BOMBSKUY" />
+        <section id="welcome" class="card">
+            <img class="logo" src="assets/images/logo.png" alt="BOMBSKUY" />
             <div class="form">
-                <input id="name" placeholder="Input Username" autocomplete="off" /><select id="level">
+                <input id="name" placeholder="Input Username" autocomplete="off" />
+                <select id="level">
                     <option value="" selected disabled>Select Level</option>
                     <option value="Easy">Easy</option>
                     <option value="Medium">Medium</option>
                     <option value="Hard">Hard</option>
                 </select>
                 <div class="row"><button id="play" disabled>Play</button><button id="instr"
-                        type="button">Instruction</button></div><button id="lb" class="wide"
-                    type="button">Leaderboard</button>
+                        type="button">Instruction</button></div>
+                <button id="lb" class="wide" type="button">Leaderboard</button>
             </div>
         </section>
 
@@ -562,10 +570,10 @@
                     <h2>How to play game</h2>
                     <ol>
                         <li>Input Username</li>
-                        <li>Put the bomb</li>
+                        <li>Put the bomb (Space)</li>
                         <li>Blow up as many walls as possible</li>
-                        <li>Blow up enemies</li>
-                        <li>Enjoy!</li>
+                        <li>Avoid the dogs</li>
+                        <li>Press ESC to pause</li>
                     </ol>
                 </div>
             </div>
@@ -579,13 +587,15 @@
                     <div class="grid">
                         <div class="th">Player Name</div>
                         <div class="th">Time</div>
-                        <div class="th icon"><img src="assets/images/wall_crack.png" alt="" /></div>
-                        <div class="th icon"><img src="assets/images/tnt.png" alt="" /></div>
-                        <div class="th icon"><img src="assets/images/ice.png" alt="" /></div>
+                        <div class="th icon"><img src="assets/images/wall_crack.png" alt=""></div>
+                        <div class="th icon"><img src="assets/images/tnt.png" alt=""></div>
+                        <div class="th icon"><img src="assets/images/ice.png" alt=""></div>
                         <div id="lbRows" class="rows"></div>
                     </div>
-                    <div class="lbBtns"><button id="lbHome" class="btn blue">Back to Home</button><button id="playAgain"
-                            class="btn red">Play Again</button><button id="lbReset" class="btn blue">Reset</button>
+                    <div class="lbBtns">
+                        <button id="lbHome" class="btn blue">Back to Home</button>
+                        <button id="playAgain" class="btn red">Play Again</button>
+                        <button id="lbReset" class="btn blue">Reset</button>
                     </div>
                 </div>
             </div>
@@ -594,6 +604,19 @@
         <div id="cdOv" class="ov">
             <div class="m">
                 <div class="count" id="countNum">3</div>
+            </div>
+        </div>
+
+        <div id="pauseOv" class="ov">
+            <div class="m">
+                <div class="pause">
+                    <div class="c">
+                        <h1>Paused</h1>
+                        <p>Press <b>ESC</b> again or click <b>Continue</b>.</p>
+                        <div class="btns"><button id="btnContinue" class="blue">Continue</button><button id="btnHome"
+                                class="red">Back to Home</button></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -615,38 +638,92 @@
             </div>
         </div>
     </main>
+
     <script>
-        const $ = s => document.querySelector(s), nameI = $("#name"), lvl = $("#level"), play = $("#play"), welcome = $("#welcome"), gameWrap = $("#game"), board = $("#board"), instrOv = $("#instrOv"), lbOv = $("#lbOv"), cdOv = $("#cdOv"), goOv = $("#goOv"), countNum = $("#countNum"), hudName = $("#hudName"), hudTime = $("#hudTime"), heartsEl = $("#hearts"), cWall = $("#cWall"), cTnt = $("#cTnt"), cIce = $("#cIce"), lbRows = $("#lbRows"), goTxt = $("#goTxt"), goW = $("#goW"), goB = $("#goB"), goI = $("#goI"), goSave = $("#goSave"), lbHome = $("#lbHome");
-        const KEY = "BOMBSKUY_LB", getLB = _ => JSON.parse(localStorage.getItem(KEY) || "[]"), setLB = a => localStorage.setItem(KEY, JSON.stringify(a));
+        const $ = id => document.getElementById(id), Q = s => document.querySelector(s);
+        const E = {
+            name: $("name"), level: $("level"), play: $("play"), welcome: $("welcome"), game: $("game"), board: $("board"),
+            instrOv: $("instrOv"), lbOv: $("lbOv"), cdOv: $("cdOv"), goOv: $("goOv"), pauseOv: $("pauseOv"),
+            countNum: $("countNum"), hudName: $("hudName"), hudTime: $("hudTime"), hearts: $("hearts"),
+            cWall: $("cWall"), cTnt: $("cTnt"), cIce: $("cIce"), lbRows: $("lbRows"),
+            goTxt: $("goTxt"), goW: $("goW"), goB: $("goB"), goI: $("goI"), goSave: $("goSave"),
+            lbHome: $("lbHome"), btnContinue: $("btnContinue"), btnHome: $("btnHome"),
+            lbClose: $("lbClose"), playAgain: $("playAgain"), lbReset: $("lbReset")
+        };
+        const KEY_LB = "BOMBSKUY_LB", KEY_HIST = "BOMBSKUY_HISTORY";
+        const J = { g: k => JSON.parse(localStorage.getItem(k) || "[]"), s: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
+        const getLB = _ => J.g(KEY_LB), setLB = a => J.s(KEY_LB, a);
+        const getHist = _ => J.g(KEY_HIST), setHist = a => J.s(KEY_HIST, a);
         const open = (o, on) => o.classList.toggle("on", !!on);
-        const W = 11, H = 9, T = 67, SAFE = [[1, 1], [2, 1], [3, 1], [1, 2], [1, 3]], inSafe = (x, y) => SAFE.some(p => p[0] == x && p[1] == y), dogCount = l => ({ Easy: 1, Medium: 2, Hard: 3 }[l] || 1);
-        let map = [], brickEl = [], hiddenItem = [], items = [], bombs = [], player, dogs = [], tick, t0, ai = 0, hp = 3, freeze = 0, range = 1, wallBroken = 0, tntGot = 0, iceGot = 0, iceOL = 0, inv = 0, mark = 0, mt = 0, run = 0, total = 0, ctx = "home", lastN = "", lastL = "", ended = 0;
-        const SRC = { bomb: "assets/images/bomb.png", exp: "assets/images/explosion.png", heart: "assets/images/heart.png", tnt: "assets/images/tnt.png", ice: "assets/images/ice.png", hf: "assets/images/heart_full.png", he: "assets/images/heart_empty.png", wc: "assets/images/wall_crack.png" };
-        const canPlay = _ => nameI.value.trim() && lvl.value;
-        nameI.oninput = _ => play.disabled = !canPlay(); lvl.onchange = _ => { lvl.blur(); play.disabled = !canPlay() };
-        $("#instr").onclick = _ => open(instrOv, 1);
-        $("#lb").onclick = _ => { ctx = "home"; showLB(); open(lbOv, 1) };
-        $("#goLB").onclick = _ => { ctx = "go"; showLB(); open(goOv, 0); open(lbOv, 1) };
-        $("#lbClose").onclick = _ => { open(lbOv, 0); ctx == "go" ? open(goOv, 1) : home() };
-        lbHome.onclick = _ => { open(lbOv, 0); home() };
-        addEventListener("click", e => { if (e.target.matches("[data-close]")) open(instrOv, 0) });
-        addEventListener("keydown", e => e.key === "Escape" && [instrOv, lbOv, cdOv, goOv].forEach(o => open(o, 0)));
-        const addSprite = (src, x, y, cls = "sprite") => { const img = document.createElement("img"); img.src = src; img.className = cls; img.style.cssText = `left:${x * T}px;top:${y * T}px`; board.appendChild(img); return img };
-        const renderHearts = _ => heartsEl.innerHTML = Array.from({ length: 3 }, (_, i) => `<img src="${i < hp ? SRC.hf : SRC.he}" alt="">`).join("");
-        const hitAni = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(() => el.classList.remove(cls), 280) };
-        const setMark = src => { mark && mark.remove(); clearTimeout(mt); mark = src ? addSprite(src, player.x, player.y, "mark") : 0; mark && (mark.style.left = player.x * T + T * .38 + "px", mark.style.top = player.y * T - 2 + "px", mt = setTimeout(() => { mark && mark.remove(); mark = 0 }, 5000)) };
-        const updMark = _ => mark && (mark.style.left = player.x * T + T * .38 + "px", mark.style.top = player.y * T - 2 + "px");
-        const tsec = _ => ((Date.now() - t0) / 1000 | 0);
+
+        const W = 11, H = 9, T = 67, SAFE = [[1, 1], [2, 1], [3, 1], [1, 2], [1, 3]];
+        const inSafe = (x, y) => SAFE.some(p => p[0] == x && p[1] == y);
+        const dogCount = l => ({ Easy: 1, Medium: 2, Hard: 3 }[l] || 1);
+
+        let map = [], brickEl = [], hiddenItem = [], items = [], bombs = [], player, dogs = [],
+            tick = 0, ai = 0, hp = 3, freeze = 0, range = 1, wallBroken = 0, tntGot = 0, iceGot = 0, iceOL = 0, inv = 0,
+            mark = 0, mt = 0, run = 0, ended = 0, paused = 0, ctx = "home", lastN = "", lastL = "", total = 0;
+
+        // timer (pause-safe)
+        let t0 = 0, elapsedMs = 0;
+        const tsec = _ => ((elapsedMs + (run && !paused ? Date.now() - t0 : 0)) / 1000 | 0);
         const fmt = s => `${String(s / 60 | 0).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-        function showLB() {
-            const d = getLB().sort((a, b) => b.w - a.w || a.s - b.s);
-            lbRows.innerHTML = d.length ? d.map((x, i) => `<div class="r"><div class="cell">${x.n}</div><div class="cell">${x.t}</div><div class="cell">${x.w}</div><div class="cell">${x.b}</div><div class="cell">${x.i}</div>${i < d.length - 1 ? `<div class="line"></div>` : ""}</div>`).join("") : `<div class="cell" style="grid-column:1/-1;opacity:.8">No data</div>`;
-            $("#playAgain").style.display = ctx == "go" ? "" : "none";
-            lbHome.style.display = ctx == "go" ? "" : "none";
+
+        const SRC = {
+            bomb: "assets/images/bomb.png", exp: "assets/images/explosion.png", heart: "assets/images/heart.png",
+            tnt: "assets/images/tnt.png", ice: "assets/images/ice.png", hf: "assets/images/heart_full.png", he: "assets/images/heart_empty.png", wc: "assets/images/wall_crack.png"
+        };
+
+        const canPlay = _ => E.name.value.trim() && E.level.value;
+        E.name.oninput = _ => E.play.disabled = !canPlay();
+        E.level.onchange = _ => { E.level.blur(); E.play.disabled = !canPlay() };
+
+        $("instr").onclick = _ => open(E.instrOv, 1);
+        $("lb").onclick = _ => { ctx = "home"; showLB(); open(E.lbOv, 1) };
+        $("goLB").onclick = _ => { ctx = "go"; showLB(); open(E.goOv, 0); open(E.lbOv, 1) };
+        E.lbClose.onclick = _ => { open(E.lbOv, 0); ctx == "go" ? open(E.goOv, 1) : home() };
+        E.lbHome.onclick = _ => { open(E.lbOv, 0); home() };
+        addEventListener("click", e => e.target.matches("[data-close]") && open(E.instrOv, 0));
+
+        const addSprite = (src, x, y, cls = "sprite") => {
+            const img = document.createElement("img");
+            img.src = src; img.className = `entity ${cls}`;
+            img.style.cssText = `left:${x * T}px;top:${y * T}px`;
+            E.board.appendChild(img); return img;
+        };
+
+        const renderHearts = _ => E.hearts.innerHTML = Array.from({ length: 3 }, (_, i) => `<img src="${i < hp ? SRC.hf : SRC.he}" alt="">`).join("");
+        const hitAni = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(_ => el.classList.remove(cls), 280) };
+
+        const setMark = src => {
+            mark && mark.remove(); clearTimeout(mt);
+            mark = src ? addSprite(src, player.x, player.y, "mark") : 0;
+            if (!mark) return;
+            mark.style.left = player.x * T + T * .38 + "px"; mark.style.top = player.y * T - 2 + "px";
+            mt = setTimeout(_ => { mark && mark.remove(); mark = 0 }, 5000);
+        };
+        const updMark = _ => mark && (mark.style.left = player.x * T + T * .38 + "px", mark.style.top = player.y * T - 2 + "px");
+
+        function home() {
+            paused = run = ended = 0;
+            [E.pauseOv, E.goOv, E.cdOv, E.instrOv, E.lbOv].forEach(x => open(x, 0));
+            E.welcome.classList.remove("hidden"); E.game.classList.add("hidden");
+            clearInterval(ai); clearInterval(tick); ctx = "home";
         }
-        $("#lbReset").onclick = _ => confirm("Reset leaderboard?") && (setLB([]), showLB(), alert("Leaderboard berhasil direset!"));
-        $("#playAgain").onclick = _ => { open(lbOv, 0); nameI.value = lastN; lvl.value = lastL; play.disabled = 0; startGame(1) };
-        function home() { welcome.classList.remove("hidden"); gameWrap.classList.add("hidden"); open(goOv, 0); open(cdOv, 0); ctx = "home" }
+
+        function showLB() {
+            const d = getLB().slice().sort((a, b) => (b.w - a.w) || (b.b - a.b) || (b.i - a.i) || (a.s - b.s));
+            E.lbRows.innerHTML = d.length ? d.map((x, i) => `<div class="r">
+    <div class="cell">${x.n}</div><div class="cell">${x.t}</div>
+    <div class="cell">${x.w}</div><div class="cell">${x.b}</div><div class="cell">${x.i}</div>
+    ${i < d.length - 1 ? `<div class="line"></div>` : ""}
+  </div>`).join("") : `<div class="cell" style="grid-column:1/-1;opacity:.8">No data</div>`;
+            E.playAgain.style.display = E.lbHome.style.display = ctx == "go" ? "" : "none";
+        }
+
+        E.lbReset.onclick = _ => confirm("Reset leaderboard?") && (setLB([]), setHist([]), showLB(), alert("Leaderboard berhasil direset!"));
+        E.playAgain.onclick = _ => { open(E.lbOv, 0); E.name.value = lastN; E.level.value = lastL; E.play.disabled = 0; startGame(1) };
+
         function buildStoneMap() {
             map = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => ((!x || !y || x == W - 1 || y == H - 1) || (x % 2 == 0 && y % 2 == 0)) ? 1 : 0));
             SAFE.forEach(([x, y]) => map[y][x] = 0);
@@ -654,75 +731,111 @@
             hiddenItem = Array.from({ length: H }, _ => Array(W).fill(0));
             items = []; bombs = []; total = 0;
         }
+
         function placeRandomBricks(t = 18) {
             for (let p = 0; p < t;) {
                 const x = 1 + Math.random() * (W - 2) | 0, y = 1 + Math.random() * (H - 2) | 0;
                 if (map[y][x] == 0 && !inSafe(x, y)) {
                     map[y][x] = 2; p++; total++;
-                    const r = Math.random(); r < .35 && (hiddenItem[y][x] = r < .12 ? "heart" : r < .24 ? "tnt" : "ice");
+                    const r = Math.random();
+                    r < .35 && (hiddenItem[y][x] = r < .12 ? "heart" : r < .24 ? "tnt" : "ice");
                 }
             }
         }
+
         function drawBoard() {
-            board.innerHTML = ""; board.style.setProperty("--T", T + "px");
+            E.board.innerHTML = ""; E.board.style.setProperty("--T", T + "px");
             for (let y = 0; y < H; y++)for (let x = 0; x < W; x++)if (map[y][x] == 2) {
-                const d = document.createElement("div"); d.className = "tile brick"; d.style.cssText = `left:${x * T}px;top:${y * T}px`; board.appendChild(d); brickEl[y][x] = d;
+                const d = document.createElement("div");
+                d.className = "tile brick";
+                d.style.cssText = `left:${x * T}px;top:${y * T}px`;
+                E.board.appendChild(d); brickEl[y][x] = d;
             }
         }
+
         function initHUD() {
-            lastN = hudName.textContent = nameI.value.trim(); lastL = lvl.value;
-            hudTime.textContent = "00:00"; hp = 3; range = 1; freeze = 0; inv = 0; wallBroken = tntGot = iceGot = 0; run = 1; ended = 0;
-            cWall.textContent = cTnt.textContent = cIce.textContent = "0"; renderHearts(); mark && mark.remove(); mark = 0; clearTimeout(mt);
+            lastN = E.hudName.textContent = E.name.value.trim(); lastL = E.level.value;
+            E.hudTime.textContent = "00:00";
+            hp = 3; range = 1; freeze = inv = 0; wallBroken = tntGot = iceGot = 0;
+            E.cWall.textContent = E.cTnt.textContent = E.cIce.textContent = "0";
+            renderHearts();
+            mark && mark.remove(); mark = 0; clearTimeout(mt);
+            ended = paused = 0; run = 1; elapsedMs = 0; t0 = Date.now();
         }
-        function startTimer() {
-            t0 = Date.now(); clearInterval(tick);
-            tick = setInterval(_ => hudTime.textContent = fmt(tsec()), 250)
-        }
+
+        const startTimer = _ => { clearInterval(tick); tick = setInterval(_ => E.hudTime.textContent = fmt(tsec()), 250) };
         function spawnPlayer() { player = { x: 1, y: 1, dir: "down", img: addSprite("assets/images/char_down.png", 1, 1) } }
+
         function randEmptyCell() {
-            for (let t = 0; t < 600; t++) { const x = 1 + Math.random() * (W - 2) | 0, y = 1 + Math.random() * (H - 2) | 0; if (map[y][x] == 0 && !inSafe(x, y)) return { x, y } }
-            return { x: W - 2, y: H - 2 }
+            for (let t = 0; t < 600; t++) {
+                const x = 1 + Math.random() * (W - 2) | 0, y = 1 + Math.random() * (H - 2) | 0;
+                if (map[y][x] == 0 && !inSafe(x, y)) return { x, y };
+            }
+            return { x: W - 2, y: H - 2 };
         }
+
         function spawnDogs(n) {
             dogs = [];
             while (dogs.length < n) {
                 const { x, y } = randEmptyCell();
-                if (!(x == 1 && y == 1)) dogs.push({ x, y, img: addSprite("assets/images/dog_down.png", x, y), last: 0 })
+                if (dogs.some(d => d.x == x && d.y == y)) continue;
+                (x == 1 && y == 1) || dogs.push({ x, y, img: addSprite("assets/images/dog_down.png", x, y), last: 0 });
             }
         }
-        function rebuildAndRender() { buildStoneMap(); placeRandomBricks(); drawBoard(); spawnPlayer(); spawnDogs(dogCount(lvl.value)) }
+
+        const rebuildAndRender = _ => { buildStoneMap(); placeRandomBricks(); drawBoard(); spawnPlayer(); spawnDogs(dogCount(E.level.value)) };
         const bombAt = (x, y) => bombs.some(b => b.x == x && b.y == y);
         const canWalk = (x, y) => x >= 0 && y >= 0 && x < W && y < H && map[y][x] == 0 && !bombAt(x, y);
-        const dmg = (fromEl = 0) => { if (Date.now() < inv || !run) return; hp = Math.max(0, hp - 1); renderHearts(); inv = Date.now() + 700; hitAni(player.img, "hurt"); fromEl && hitAni(fromEl, "hurt"); hp || finish(0) };
+
+        const dmg = (fromEl = 0) => {
+            if (Date.now() < inv || !run || paused) return;
+            hp = Math.max(0, hp - 1); renderHearts(); inv = Date.now() + 700;
+            hitAni(player.img, "hurt"); fromEl && hitAni(fromEl, "hurt");
+            hp || finish(0);
+        };
+
         function finish(win) {
-            if (ended) return; ended = 1; run = 0; clearInterval(ai); clearInterval(tick);
-            ctx = "go"; goTxt.textContent = `Good job ${lastN}! your time ${fmt(tsec())} with results:`; goW.textContent = wallBroken; goB.textContent = tntGot; goI.textContent = iceGot;
-            goSave.disabled = 0; open(goOv, 1)
+            if (ended) return; ended = 1; run = 0;
+            if (!paused) elapsedMs += Date.now() - t0;
+            paused = 0; clearInterval(ai); clearInterval(tick);
+            ctx = "go";
+            E.goTxt.textContent = `Player: ${lastN} • Time: ${fmt(tsec())}`;
+            E.goW.textContent = wallBroken; E.goB.textContent = tntGot; E.goI.textContent = iceGot;
+            E.goSave.disabled = 0; open(E.goOv, 1);
         }
-        function touchDog() { const d = dogs.find(d => d.x == player.x && d.y == player.y); d && dmg(d.img) }
+
+        const touchDog = _ => { const d = dogs.find(d => d.x == player.x && d.y == player.y); d && dmg(d.img) };
+
         function touchItem() {
             const it = items.find(a => a.x == player.x && a.y == player.y); if (!it) return;
             if (it.t == "heart") { setMark(SRC.heart); dmg(); it.el.remove(); items = items.filter(a => a != it); return }
-            if (it.t == "tnt") { range = Math.min(range * 2, 5); cTnt.textContent = ++tntGot; setMark(SRC.tnt); it.el.remove(); items = items.filter(a => a != it); return }
-            freeze = Date.now() + 5000; cIce.textContent = ++iceGot; setMark(SRC.ice);
+            if (it.t == "tnt") { range = Math.min(range * 2, 5); E.cTnt.textContent = ++tntGot; setMark(SRC.tnt); it.el.remove(); items = items.filter(a => a != it); return }
+            freeze = Date.now() + 5000; E.cIce.textContent = ++iceGot; setMark(SRC.ice);
             player.img.classList.add("iceo"); it.el.style.zIndex = 9; it.el.classList.add("iceo"); iceOL = it.el;
-            setTimeout(() => { player.img.classList.remove("iceo"); iceOL && iceOL.remove(); iceOL = 0; items = items.filter(a => a != it) }, 5000)
+            setTimeout(_ => { player.img.classList.remove("iceo"); iceOL && iceOL.remove(); iceOL = 0; items = items.filter(a => a != it) }, 5000);
         }
+
         function move(dx, dy, dir) {
-            if (!run || Date.now() < freeze) return;
+            if (!run || paused || Date.now() < freeze) return;
             const nx = player.x + dx, ny = player.y + dy;
             player.dir = dir; player.img.src = `assets/images/char_${dir}.png`; hitAni(player.img, "walk");
-            if (canWalk(nx, ny)) { player.x = nx; player.y = ny; player.img.style.left = nx * T + "px"; player.img.style.top = ny * T + "px"; updMark(); touchItem(); touchDog() }
+            if (canWalk(nx, ny)) {
+                player.x = nx; player.y = ny;
+                player.img.style.left = nx * T + "px"; player.img.style.top = ny * T + "px";
+                updMark(); touchItem(); touchDog();
+            }
         }
+
         function destroyBrick(x, y) {
             if (map[y][x] != 2) return;
             map[y][x] = 0; const el = brickEl[y][x];
-            el && (el.style.backgroundImage = `url("${SRC.wc}")`, setTimeout(() => el.remove(), 220), brickEl[y][x] = 0);
-            cWall.textContent = ++wallBroken;
+            el && (el.style.backgroundImage = `url("${SRC.wc}")`, setTimeout(_ => el.remove(), 220), brickEl[y][x] = 0);
+            E.cWall.textContent = ++wallBroken;
             const hi = hiddenItem[y][x]; hiddenItem[y][x] = 0;
             hi && items.push({ t: hi, x, y, el: addSprite(SRC[hi], x, y, "fx") });
-            wallBroken >= total && hp > 0 && finish(1)
+            wallBroken >= total && hp > 0 && finish(1);
         }
+
         function boomCells(x, y) {
             const out = [[x, y]];
             for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) for (let i = 1; i <= range; i++) {
@@ -731,72 +844,109 @@
                 out.push([nx, ny]);
                 if (map[ny][nx] == 2) { destroyBrick(nx, ny); break }
             }
-            return out
+            return out;
         }
+
         function explode(b) {
             bombs = bombs.filter(x => x != b); b.el.remove();
             const cells = boomCells(b.x, b.y);
-            cells.forEach(([x, y]) => { const fx = addSprite(SRC.exp, x, y, "fx"); setTimeout(() => fx.remove(), 250) });
+            cells.forEach(([x, y]) => { const fx = addSprite(SRC.exp, x, y, "fx"); setTimeout(_ => fx.remove(), 250) });
             cells.some(([x, y]) => x == player.x && y == player.y) && dmg();
         }
+
         function placeBomb() {
-            if (!run || Date.now() < freeze || bombAt(player.x, player.y)) return;
+            if (!run || paused || Date.now() < freeze || bombAt(player.x, player.y)) return;
             const b = { x: player.x, y: player.y, el: addSprite(SRC.bomb, player.x, player.y, "bomb") };
-            bombs.push(b); setTimeout(() => b.el.classList.add("blink"), 4000); setTimeout(() => explode(b), 5000);
+            bombs.push(b);
+            setTimeout(_ => b.el.classList.add("blink"), 4000);
+            setTimeout(_ => explode(b), 5000);
         }
+
         function clearLine(x1, y1, x2, y2) {
             if (x1 == x2) { for (let y = Math.min(y1, y2) + 1; y < Math.max(y1, y2); y++)if (map[y][x1]) return 0; return 1 }
             if (y1 == y2) { for (let x = Math.min(x1, x2) + 1; x < Math.max(x1, x2); x++)if (map[y1][x]) return 0; return 1 }
-            return 0
+            return 0;
         }
-        function dogDir(dx, dy) { return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up") }
+
+        const dogDir = (dx, dy) => Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+
         function dogStep(d) {
-            if (!run || Date.now() < freeze) return;
+            if (!run || paused) return;
             let nx = d.x, ny = d.y, see = clearLine(d.x, d.y, player.x, player.y);
             if (see) {
-                if (d.x == player.x) ny += Math.sign(player.y - d.y);
-                else nx += Math.sign(player.x - d.x);
-                if (!canWalk(nx, ny)) nx = d.x, ny = d.y;
+                if (d.x == player.x) ny += Math.sign(player.y - d.y); else nx += Math.sign(player.x - d.x);
+                canWalk(nx, ny) || (nx = d.x, ny = d.y);
             } else {
                 const opts = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [d.x + dx, d.y + dy, dx, dy]).filter(a => canWalk(a[0], a[1]));
                 if (opts.length) {
                     let pick = opts[Math.random() * opts.length | 0];
-                    if (opts.length > 1 && d.last && pick[2] == -d.last[0] && pick[3] == -d.last[1]) pick = opts.find(o => !(o[2] == -d.last[0] && o[3] == -d.last[1])) || pick;
+                    if (opts.length > 1 && d.last && pick[2] == -d.last[0] && pick[3] == -d.last[1])
+                        pick = opts.find(o => !(o[2] == -d.last[0] && o[3] == -d.last[1])) || pick;
                     nx = pick[0]; ny = pick[1]; d.last = [pick[2], pick[3]];
                 }
             }
             if (nx == d.x && ny == d.y) return;
             d.img.src = `assets/images/dog_${dogDir(nx - d.x, ny - d.y)}.png`;
             d.x = nx; d.y = ny; d.img.style.left = nx * T + "px"; d.img.style.top = ny * T + "px";
-            d.x == player.x && d.y == player.y && dmg(d.img)
+            d.x == player.x && d.y == player.y && dmg(d.img);
         }
-        function startAI() { clearInterval(ai); ai = setInterval(_ => dogs.forEach(d => dogStep(d)), 520) }
+
+        const startAI = _ => { clearInterval(ai); ai = setInterval(_ => dogs.forEach(d => dogStep(d)), 700) };
+
+        // pause
+        function togglePause(force) {
+            if (ended || E.game.classList.contains("hidden")) return;
+            const want = typeof force == "boolean" ? force : !paused;
+            if (want && run) {
+                paused = 1; elapsedMs += Date.now() - t0; clearInterval(tick); clearInterval(ai); open(E.pauseOv, 1);
+            } else if (!want && paused) {
+                paused = 0; t0 = Date.now(); startTimer(); startAI(); open(E.pauseOv, 0);
+            }
+        }
+        E.btnContinue.onclick = _ => togglePause(0);
+        E.btnHome.onclick = _ => home();
+
         addEventListener("keydown", e => {
-            if (gameWrap.classList.contains("hidden") || !run) return;
             const k = e.key.toLowerCase();
-            if (k == " " || k == "spacebar") return placeBomb();
-            if (k == "arrowup" || k == "w") return move(0, -1, "up");
-            if (k == "arrowdown" || k == "s") return move(0, 1, "down");
-            if (k == "arrowleft" || k == "a") return move(-1, 0, "left");
-            if (k == "arrowright" || k == "d") return move(1, 0, "right");
+            if (k === "escape") {
+                if (E.instrOv.classList.contains("on")) return open(E.instrOv, 0);
+                if (E.lbOv.classList.contains("on")) { open(E.lbOv, 0); return ctx == "go" ? open(E.goOv, 1) : home() }
+                if (E.goOv.classList.contains("on") || E.cdOv.classList.contains("on")) return;
+                return togglePause();
+            }
+            if (E.game.classList.contains("hidden") || !run || paused) return;
+            if (k === " " || k === "spacebar") return placeBomb();
+            if (k === "arrowup" || k === "w") return move(0, -1, "up");
+            if (k === "arrowdown" || k === "s") return move(0, 1, "down");
+            if (k === "arrowleft" || k === "a") return move(-1, 0, "left");
+            if (k === "arrowright" || k === "d") return move(1, 0, "right");
         });
-        async function startGame(keep) {
-            open(instrOv, 0); open(lbOv, 0); open(goOv, 0);
-            welcome.classList.add("hidden"); gameWrap.classList.add("hidden");
-            open(cdOv, 1); for (let n = 3; n >= 1; n--) { countNum.textContent = n; await new Promise(r => setTimeout(r, 650)) } open(cdOv, 0);
-            gameWrap.classList.remove("hidden");
+
+        async function startGame() {
+            [E.instrOv, E.lbOv, E.goOv, E.pauseOv].forEach(x => open(x, 0));
+            E.welcome.classList.add("hidden"); E.game.classList.add("hidden");
+            open(E.cdOv, 1);
+            for (let n = 3; n >= 1; n--) { E.countNum.textContent = n; await new Promise(r => setTimeout(r, 650)) }
+            open(E.cdOv, 0);
+            E.game.classList.remove("hidden");
             initHUD(); rebuildAndRender(); startTimer(); startAI();
         }
-        play.onclick = _ => startGame();
-        goSave.onclick = _ => {
-            if (goSave.disabled) return;
-            const n = lastN, s = tsec(), t = fmt(s), w = wallBroken, b = tntGot, i = iceGot;
-            let d = getLB(), k = d.findIndex(x => x.n == n), cur = { n, t, s, w, b, i };
-            if (k < 0) d.push(cur); else {
-                const x = d[k], better = w > x.w || w == x.w && s < x.s;
-                better && (d[k] = cur)
+        E.play.onclick = _ => startGame();
+
+        E.goSave.onclick = _ => {
+            if (E.goSave.disabled) return;
+            const n = lastN, s = tsec(), t = fmt(s), w = wallBroken, b = tntGot, i = iceGot, cur = { n, t, s, w, b, i, at: Date.now() };
+            const hist = getHist(); hist.unshift(cur); setHist(hist.slice(0, 200));
+            let d = getLB(), idx = d.findIndex(x => x.n == n);
+            if (idx < 0) d.push(cur);
+            else {
+                const x = d[idx];
+                const better = (w > x.w) || (w == x.w && b > x.b) || (w == x.w && b == x.b && i > x.i) || (w == x.w && b == x.b && i == x.i && s < x.s);
+                better && (d[idx] = cur);
             }
-            d.sort((a, b) => b.w - a.w || a.s - b.s); setLB(d.slice(0, 50)); goSave.disabled = 1;
+            d.sort((a, b) => (b.w - a.w) || (b.b - a.b) || (b.i - a.i) || (a.s - b.s));
+            setLB(d.slice(0, 50));
+            E.goSave.disabled = 1; alert("Score saved!");
         };
     </script>
 </body>
