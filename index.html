@@ -640,73 +640,82 @@
     </main>
 
     <script>
-        const $ = id => document.getElementById(id), Q = s => document.querySelector(s);
+        /* =========================
+           BOMBSKUY (Pemula-Cepat)
+           - Tetap 1 file, fitur sama
+           - Lebih pendek dari versi “super rapi”
+           - Tapi alurnya mudah diikuti karena dibagi blok
+        ========================= */
+
+        // ===== 1) DOM helper + kumpulan elemen =====
+        const $ = id => document.getElementById(id);
         const E = {
-            name: $("name"), level: $("level"), play: $("play"), welcome: $("welcome"), game: $("game"), board: $("board"),
+            name: $("name"), level: $("level"), play: $("play"),
+            welcome: $("welcome"), game: $("game"), board: $("board"),
             instrOv: $("instrOv"), lbOv: $("lbOv"), cdOv: $("cdOv"), goOv: $("goOv"), pauseOv: $("pauseOv"),
-            countNum: $("countNum"), hudName: $("hudName"), hudTime: $("hudTime"), hearts: $("hearts"),
-            cWall: $("cWall"), cTnt: $("cTnt"), cIce: $("cIce"), lbRows: $("lbRows"),
-            goTxt: $("goTxt"), goW: $("goW"), goB: $("goB"), goI: $("goI"), goSave: $("goSave"),
-            lbHome: $("lbHome"), btnContinue: $("btnContinue"), btnHome: $("btnHome"),
+            countNum: $("countNum"), hudName: $("hudName"), hudTime: $("hudTime"),
+            hearts: $("hearts"), cWall: $("cWall"), cTnt: $("cTnt"), cIce: $("cIce"),
+            lbRows: $("lbRows"), goTxt: $("goTxt"), goW: $("goW"), goB: $("goB"), goI: $("goI"),
+            goSave: $("goSave"), lbHome: $("lbHome"), btnContinue: $("btnContinue"), btnHome: $("btnHome"),
             lbClose: $("lbClose"), playAgain: $("playAgain"), lbReset: $("lbReset")
         };
-        const KEY_LB = "BOMBSKUY_LB", KEY_HIST = "BOMBSKUY_HISTORY";
-        const J = { g: k => JSON.parse(localStorage.getItem(k) || "[]"), s: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
-        const getLB = _ => J.g(KEY_LB), setLB = a => J.s(KEY_LB, a);
-        const getHist = _ => J.g(KEY_HIST), setHist = a => J.s(KEY_HIST, a);
-        const open = (o, on) => o.classList.toggle("on", !!on);
+        const openOv = (el, show) => el.classList.toggle("on", !!show);
 
+        // ===== 2) LocalStorage (Leaderboard & History) =====
+        const KEY_LB = "BOMBSKUY_LB", KEY_HIST = "BOMBSKUY_HISTORY";
+        const J = {
+            get: k => JSON.parse(localStorage.getItem(k) || "[]"),
+            set: (k, v) => localStorage.setItem(k, JSON.stringify(v))
+        };
+        const getLB = _ => J.get(KEY_LB), setLB = a => J.set(KEY_LB, a);
+        const getHist = _ => J.get(KEY_HIST), setHist = a => J.set(KEY_HIST, a);
+
+        // ===== 3) Konstanta game =====
         const W = 11, H = 9, T = 67, SAFE = [[1, 1], [2, 1], [3, 1], [1, 2], [1, 3]];
         const inSafe = (x, y) => SAFE.some(p => p[0] == x && p[1] == y);
         const dogCount = l => ({ Easy: 1, Medium: 2, Hard: 3 }[l] || 1);
+        const SRC = {
+            bomb: "assets/images/bomb.png", exp: "assets/images/explosion.png",
+            tnt: "assets/images/tnt.png", ice: "assets/images/ice.png", heart: "assets/images/heart.png",
+            hf: "assets/images/heart_full.png", he: "assets/images/heart_empty.png", wc: "assets/images/wall_crack.png"
+        };
 
-        let map = [], brickEl = [], hiddenItem = [], items = [], bombs = [], player, dogs = [],
-            tick = 0, ai = 0, hp = 3, freeze = 0, range = 1, wallBroken = 0, tntGot = 0, iceGot = 0, iceOL = 0, inv = 0,
-            mark = 0, mt = 0, run = 0, ended = 0, paused = 0, ctx = "home", lastN = "", lastL = "", total = 0;
+        // ===== 4) STATE (variabel berjalan) =====
+        let map = [], brickEl = [], hiddenItem = [], items = [], bombs = [], player, dogs = [];
+        let ai = 0, tick = 0, hp = 3, freeze = 0, range = 1, wallBroken = 0, tntGot = 0, iceGot = 0, iceOL = 0, inv = 0;
+        let mark = 0, mt = 0, run = 0, ended = 0, paused = 0, ctx = "home", lastN = "", lastL = "", total = 0;
 
-        // timer (pause-safe)
+        // ===== 5) TIMER yang aman saat pause =====
         let t0 = 0, elapsedMs = 0;
         const tsec = _ => ((elapsedMs + (run && !paused ? Date.now() - t0 : 0)) / 1000 | 0);
         const fmt = s => `${String(s / 60 | 0).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+        const startTimer = _ => { clearInterval(tick); tick = setInterval(_ => E.hudTime.textContent = fmt(tsec()), 250); };
 
-        const SRC = {
-            bomb: "assets/images/bomb.png", exp: "assets/images/explosion.png", heart: "assets/images/heart.png",
-            tnt: "assets/images/tnt.png", ice: "assets/images/ice.png", hf: "assets/images/heart_full.png", he: "assets/images/heart_empty.png", wc: "assets/images/wall_crack.png"
-        };
-
-        const canPlay = _ => E.name.value.trim() && E.level.value;
-        E.name.oninput = _ => E.play.disabled = !canPlay();
-        E.level.onchange = _ => { E.level.blur(); E.play.disabled = !canPlay() };
-
-        $("instr").onclick = _ => open(E.instrOv, 1);
-        $("lb").onclick = _ => { ctx = "home"; showLB(); open(E.lbOv, 1) };
-        $("goLB").onclick = _ => { ctx = "go"; showLB(); open(E.goOv, 0); open(E.lbOv, 1) };
-        E.lbClose.onclick = _ => { open(E.lbOv, 0); ctx == "go" ? open(E.goOv, 1) : home() };
-        E.lbHome.onclick = _ => { open(E.lbOv, 0); home() };
-        addEventListener("click", e => e.target.matches("[data-close]") && open(E.instrOv, 0));
-
+        // ===== 6) UI kecil (hearts + animasi) =====
         const addSprite = (src, x, y, cls = "sprite") => {
             const img = document.createElement("img");
             img.src = src; img.className = `entity ${cls}`;
             img.style.cssText = `left:${x * T}px;top:${y * T}px`;
             E.board.appendChild(img); return img;
         };
+        const heartsRender = _ => E.hearts.innerHTML = Array.from({ length: 3 }, (_, i) => `<img src="${i < hp ? SRC.hf : SRC.he}" alt="">`).join("");
+        const ani = (el, cls, ms = 280) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(_ => el.classList.remove(cls), ms); };
 
-        const renderHearts = _ => E.hearts.innerHTML = Array.from({ length: 3 }, (_, i) => `<img src="${i < hp ? SRC.hf : SRC.he}" alt="">`).join("");
-        const hitAni = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(_ => el.classList.remove(cls), 280) };
-
+        // mark 5 detik
         const setMark = src => {
             mark && mark.remove(); clearTimeout(mt);
             mark = src ? addSprite(src, player.x, player.y, "mark") : 0;
             if (!mark) return;
-            mark.style.left = player.x * T + T * .38 + "px"; mark.style.top = player.y * T - 2 + "px";
-            mt = setTimeout(_ => { mark && mark.remove(); mark = 0 }, 5000);
+            mark.style.left = player.x * T + T * .38 + "px";
+            mark.style.top = player.y * T - 2 + "px";
+            mt = setTimeout(_ => { mark && mark.remove(); mark = 0; }, 5000);
         };
         const updMark = _ => mark && (mark.style.left = player.x * T + T * .38 + "px", mark.style.top = player.y * T - 2 + "px");
 
+        // ===== 7) HOME & LEADERBOARD =====
         function home() {
             paused = run = ended = 0;
-            [E.pauseOv, E.goOv, E.cdOv, E.instrOv, E.lbOv].forEach(x => open(x, 0));
+            [E.pauseOv, E.goOv, E.cdOv, E.instrOv, E.lbOv].forEach(x => openOv(x, 0));
             E.welcome.classList.remove("hidden"); E.game.classList.add("hidden");
             clearInterval(ai); clearInterval(tick); ctx = "home";
         }
@@ -718,22 +727,34 @@
     <div class="cell">${x.w}</div><div class="cell">${x.b}</div><div class="cell">${x.i}</div>
     ${i < d.length - 1 ? `<div class="line"></div>` : ""}
   </div>`).join("") : `<div class="cell" style="grid-column:1/-1;opacity:.8">No data</div>`;
-            E.playAgain.style.display = E.lbHome.style.display = ctx == "go" ? "" : "none";
+            E.playAgain.style.display = E.lbHome.style.display = (ctx == "go") ? "" : "none";
         }
 
-        E.lbReset.onclick = _ => confirm("Reset leaderboard?") && (setLB([]), setHist([]), showLB(), alert("Leaderboard berhasil direset!"));
-        E.playAgain.onclick = _ => { open(E.lbOv, 0); E.name.value = lastN; E.level.value = lastL; E.play.disabled = 0; startGame(1) };
+        // ===== 8) Validasi tombol Play =====
+        const canPlay = _ => E.name.value.trim() && E.level.value;
+        E.name.oninput = _ => E.play.disabled = !canPlay();
+        E.level.onchange = _ => { E.level.blur(); E.play.disabled = !canPlay(); };
 
-        function buildStoneMap() {
-            map = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => ((!x || !y || x == W - 1 || y == H - 1) || (x % 2 == 0 && y % 2 == 0)) ? 1 : 0));
+        // tombol overlay
+        $("instr").onclick = _ => openOv(E.instrOv, 1);
+        $("lb").onclick = _ => { ctx = "home"; showLB(); openOv(E.lbOv, 1); };
+        $("goLB").onclick = _ => { ctx = "go"; showLB(); openOv(E.goOv, 0); openOv(E.lbOv, 1); };
+        E.lbClose.onclick = _ => { openOv(E.lbOv, 0); ctx == "go" ? openOv(E.goOv, 1) : home(); };
+        E.lbHome.onclick = _ => { openOv(E.lbOv, 0); home(); };
+        addEventListener("click", e => e.target.matches("[data-close]") && openOv(E.instrOv, 0));
+
+        // ===== 9) MAP: stone + brick random + draw =====
+        function buildMap() {
+            map = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) =>
+                ((!x || !y || x == W - 1 || y == H - 1) || (x % 2 == 0 && y % 2 == 0)) ? 1 : 0
+            ));
             SAFE.forEach(([x, y]) => map[y][x] = 0);
             brickEl = Array.from({ length: H }, _ => Array(W).fill(0));
             hiddenItem = Array.from({ length: H }, _ => Array(W).fill(0));
             items = []; bombs = []; total = 0;
         }
-
-        function placeRandomBricks(t = 18) {
-            for (let p = 0; p < t;) {
+        function placeBricks(target = 18) {
+            for (let p = 0; p < target;) {
                 const x = 1 + Math.random() * (W - 2) | 0, y = 1 + Math.random() * (H - 2) | 0;
                 if (map[y][x] == 0 && !inSafe(x, y)) {
                     map[y][x] = 2; p++; total++;
@@ -742,7 +763,6 @@
                 }
             }
         }
-
         function drawBoard() {
             E.board.innerHTML = ""; E.board.style.setProperty("--T", T + "px");
             for (let y = 0; y < H; y++)for (let x = 0; x < W; x++)if (map[y][x] == 2) {
@@ -753,47 +773,45 @@
             }
         }
 
+        // ===== 10) Spawn player + dogs =====
         function initHUD() {
             lastN = E.hudName.textContent = E.name.value.trim(); lastL = E.level.value;
             E.hudTime.textContent = "00:00";
             hp = 3; range = 1; freeze = inv = 0; wallBroken = tntGot = iceGot = 0;
             E.cWall.textContent = E.cTnt.textContent = E.cIce.textContent = "0";
-            renderHearts();
+            heartsRender();
             mark && mark.remove(); mark = 0; clearTimeout(mt);
             ended = paused = 0; run = 1; elapsedMs = 0; t0 = Date.now();
         }
-
-        const startTimer = _ => { clearInterval(tick); tick = setInterval(_ => E.hudTime.textContent = fmt(tsec()), 250) };
-        function spawnPlayer() { player = { x: 1, y: 1, dir: "down", img: addSprite("assets/images/char_down.png", 1, 1) } }
-
-        function randEmptyCell() {
+        function spawnPlayer() { player = { x: 1, y: 1, dir: "down", img: addSprite("assets/images/char_down.png", 1, 1) }; }
+        function randEmpty() {
             for (let t = 0; t < 600; t++) {
                 const x = 1 + Math.random() * (W - 2) | 0, y = 1 + Math.random() * (H - 2) | 0;
                 if (map[y][x] == 0 && !inSafe(x, y)) return { x, y };
             }
             return { x: W - 2, y: H - 2 };
         }
-
         function spawnDogs(n) {
             dogs = [];
             while (dogs.length < n) {
-                const { x, y } = randEmptyCell();
+                const { x, y } = randEmpty();
                 if (dogs.some(d => d.x == x && d.y == y)) continue;
                 (x == 1 && y == 1) || dogs.push({ x, y, img: addSprite("assets/images/dog_down.png", x, y), last: 0 });
             }
         }
+        const rebuild = _ => { buildMap(); placeBricks(); drawBoard(); spawnPlayer(); spawnDogs(dogCount(E.level.value)); };
 
-        const rebuildAndRender = _ => { buildStoneMap(); placeRandomBricks(); drawBoard(); spawnPlayer(); spawnDogs(dogCount(E.level.value)) };
+        // ===== 11) Collision helper =====
         const bombAt = (x, y) => bombs.some(b => b.x == x && b.y == y);
         const canWalk = (x, y) => x >= 0 && y >= 0 && x < W && y < H && map[y][x] == 0 && !bombAt(x, y);
 
-        const dmg = (fromEl = 0) => {
+        // ===== 12) Damage / Game Over =====
+        function dmg(fromEl = 0) {
             if (Date.now() < inv || !run || paused) return;
-            hp = Math.max(0, hp - 1); renderHearts(); inv = Date.now() + 700;
-            hitAni(player.img, "hurt"); fromEl && hitAni(fromEl, "hurt");
+            hp = Math.max(0, hp - 1); heartsRender(); inv = Date.now() + 700;
+            ani(player.img, "hurt"); fromEl && ani(fromEl, "hurt");
             hp || finish(0);
-        };
-
+        }
         function finish(win) {
             if (ended) return; ended = 1; run = 0;
             if (!paused) elapsedMs += Date.now() - t0;
@@ -801,24 +819,25 @@
             ctx = "go";
             E.goTxt.textContent = `Player: ${lastN} • Time: ${fmt(tsec())}`;
             E.goW.textContent = wallBroken; E.goB.textContent = tntGot; E.goI.textContent = iceGot;
-            E.goSave.disabled = 0; open(E.goOv, 1);
+            E.goSave.disabled = 0; openOv(E.goOv, 1);
         }
+        const touchDog = _ => { const d = dogs.find(d => d.x == player.x && d.y == player.y); d && dmg(d.img); };
 
-        const touchDog = _ => { const d = dogs.find(d => d.x == player.x && d.y == player.y); d && dmg(d.img) };
-
+        // ===== 13) Item pickup =====
         function touchItem() {
             const it = items.find(a => a.x == player.x && a.y == player.y); if (!it) return;
-            if (it.t == "heart") { setMark(SRC.heart); dmg(); it.el.remove(); items = items.filter(a => a != it); return }
-            if (it.t == "tnt") { range = Math.min(range * 2, 5); E.cTnt.textContent = ++tntGot; setMark(SRC.tnt); it.el.remove(); items = items.filter(a => a != it); return }
+            if (it.t == "heart") { setMark(SRC.heart); dmg(); it.el.remove(); items = items.filter(a => a != it); return; }
+            if (it.t == "tnt") { range = Math.min(range * 2, 5); E.cTnt.textContent = ++tntGot; setMark(SRC.tnt); it.el.remove(); items = items.filter(a => a != it); return; }
             freeze = Date.now() + 5000; E.cIce.textContent = ++iceGot; setMark(SRC.ice);
             player.img.classList.add("iceo"); it.el.style.zIndex = 9; it.el.classList.add("iceo"); iceOL = it.el;
-            setTimeout(_ => { player.img.classList.remove("iceo"); iceOL && iceOL.remove(); iceOL = 0; items = items.filter(a => a != it) }, 5000);
+            setTimeout(_ => { player.img.classList.remove("iceo"); iceOL && iceOL.remove(); iceOL = 0; items = items.filter(a => a != it); }, 5000);
         }
 
+        // ===== 14) Move player =====
         function move(dx, dy, dir) {
             if (!run || paused || Date.now() < freeze) return;
             const nx = player.x + dx, ny = player.y + dy;
-            player.dir = dir; player.img.src = `assets/images/char_${dir}.png`; hitAni(player.img, "walk");
+            player.dir = dir; player.img.src = `assets/images/char_${dir}.png`; ani(player.img, "walk", 240);
             if (canWalk(nx, ny)) {
                 player.x = nx; player.y = ny;
                 player.img.style.left = nx * T + "px"; player.img.style.top = ny * T + "px";
@@ -826,6 +845,7 @@
             }
         }
 
+        // ===== 15) Brick destroy + win =====
         function destroyBrick(x, y) {
             if (map[y][x] != 2) return;
             map[y][x] = 0; const el = brickEl[y][x];
@@ -836,24 +856,23 @@
             wallBroken >= total && hp > 0 && finish(1);
         }
 
+        // ===== 16) Bomb logic =====
         function boomCells(x, y) {
             const out = [[x, y]];
             for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) for (let i = 1; i <= range; i++) {
                 const nx = x + dx * i, ny = y + dy * i;
                 if (map[ny]?.[nx] == null || map[ny][nx] == 1) break;
                 out.push([nx, ny]);
-                if (map[ny][nx] == 2) { destroyBrick(nx, ny); break }
+                if (map[ny][nx] == 2) { destroyBrick(nx, ny); break; }
             }
             return out;
         }
-
         function explode(b) {
             bombs = bombs.filter(x => x != b); b.el.remove();
             const cells = boomCells(b.x, b.y);
-            cells.forEach(([x, y]) => { const fx = addSprite(SRC.exp, x, y, "fx"); setTimeout(_ => fx.remove(), 250) });
+            cells.forEach(([x, y]) => { const fx = addSprite(SRC.exp, x, y, "fx"); setTimeout(_ => fx.remove(), 250); });
             cells.some(([x, y]) => x == player.x && y == player.y) && dmg();
         }
-
         function placeBomb() {
             if (!run || paused || Date.now() < freeze || bombAt(player.x, player.y)) return;
             const b = { x: player.x, y: player.y, el: addSprite(SRC.bomb, player.x, player.y, "bomb") };
@@ -862,14 +881,13 @@
             setTimeout(_ => explode(b), 5000);
         }
 
+        // ===== 17) Dog AI (lihat sebaris/sekollom lalu kejar, kalau tidak random) =====
         function clearLine(x1, y1, x2, y2) {
-            if (x1 == x2) { for (let y = Math.min(y1, y2) + 1; y < Math.max(y1, y2); y++)if (map[y][x1]) return 0; return 1 }
-            if (y1 == y2) { for (let x = Math.min(x1, x2) + 1; x < Math.max(x1, x2); x++)if (map[y1][x]) return 0; return 1 }
+            if (x1 == x2) { for (let y = Math.min(y1, y2) + 1; y < Math.max(y1, y2); y++) if (map[y][x1]) return 0; return 1; }
+            if (y1 == y2) { for (let x = Math.min(x1, x2) + 1; x < Math.max(x1, x2); x++) if (map[y1][x]) return 0; return 1; }
             return 0;
         }
-
         const dogDir = (dx, dy) => Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
-
         function dogStep(d) {
             if (!run || paused) return;
             let nx = d.x, ny = d.y, see = clearLine(d.x, d.y, player.x, player.y);
@@ -877,7 +895,8 @@
                 if (d.x == player.x) ny += Math.sign(player.y - d.y); else nx += Math.sign(player.x - d.x);
                 canWalk(nx, ny) || (nx = d.x, ny = d.y);
             } else {
-                const opts = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [d.x + dx, d.y + dy, dx, dy]).filter(a => canWalk(a[0], a[1]));
+                const opts = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+                    .map(([dx, dy]) => [d.x + dx, d.y + dy, dx, dy]).filter(a => canWalk(a[0], a[1]));
                 if (opts.length) {
                     let pick = opts[Math.random() * opts.length | 0];
                     if (opts.length > 1 && d.last && pick[2] == -d.last[0] && pick[3] == -d.last[1])
@@ -890,27 +909,27 @@
             d.x = nx; d.y = ny; d.img.style.left = nx * T + "px"; d.img.style.top = ny * T + "px";
             d.x == player.x && d.y == player.y && dmg(d.img);
         }
+        const startAI = _ => { clearInterval(ai); ai = setInterval(_ => dogs.forEach(d => dogStep(d)), 700); };
 
-        const startAI = _ => { clearInterval(ai); ai = setInterval(_ => dogs.forEach(d => dogStep(d)), 700) };
-
-        // pause
+        // ===== 18) Pause =====
         function togglePause(force) {
             if (ended || E.game.classList.contains("hidden")) return;
             const want = typeof force == "boolean" ? force : !paused;
             if (want && run) {
-                paused = 1; elapsedMs += Date.now() - t0; clearInterval(tick); clearInterval(ai); open(E.pauseOv, 1);
+                paused = 1; elapsedMs += Date.now() - t0; clearInterval(tick); clearInterval(ai); openOv(E.pauseOv, 1);
             } else if (!want && paused) {
-                paused = 0; t0 = Date.now(); startTimer(); startAI(); open(E.pauseOv, 0);
+                paused = 0; t0 = Date.now(); startTimer(); startAI(); openOv(E.pauseOv, 0);
             }
         }
         E.btnContinue.onclick = _ => togglePause(0);
         E.btnHome.onclick = _ => home();
 
+        // ===== 19) Keyboard =====
         addEventListener("keydown", e => {
             const k = e.key.toLowerCase();
             if (k === "escape") {
-                if (E.instrOv.classList.contains("on")) return open(E.instrOv, 0);
-                if (E.lbOv.classList.contains("on")) { open(E.lbOv, 0); return ctx == "go" ? open(E.goOv, 1) : home() }
+                if (E.instrOv.classList.contains("on")) return openOv(E.instrOv, 0);
+                if (E.lbOv.classList.contains("on")) { openOv(E.lbOv, 0); return ctx == "go" ? openOv(E.goOv, 1) : home(); }
                 if (E.goOv.classList.contains("on") || E.cdOv.classList.contains("on")) return;
                 return togglePause();
             }
@@ -922,17 +941,19 @@
             if (k === "arrowright" || k === "d") return move(1, 0, "right");
         });
 
+        // ===== 20) Start game (countdown 3 detik) =====
         async function startGame() {
-            [E.instrOv, E.lbOv, E.goOv, E.pauseOv].forEach(x => open(x, 0));
+            [E.instrOv, E.lbOv, E.goOv, E.pauseOv].forEach(x => openOv(x, 0));
             E.welcome.classList.add("hidden"); E.game.classList.add("hidden");
-            open(E.cdOv, 1);
-            for (let n = 3; n >= 1; n--) { E.countNum.textContent = n; await new Promise(r => setTimeout(r, 650)) }
-            open(E.cdOv, 0);
+            openOv(E.cdOv, 1);
+            for (let n = 3; n >= 1; n--) { E.countNum.textContent = n; await new Promise(r => setTimeout(r, 650)); }
+            openOv(E.cdOv, 0);
             E.game.classList.remove("hidden");
-            initHUD(); rebuildAndRender(); startTimer(); startAI();
+            initHUD(); rebuild(); startTimer(); startAI();
         }
         E.play.onclick = _ => startGame();
 
+        // ===== 21) Save score =====
         E.goSave.onclick = _ => {
             if (E.goSave.disabled) return;
             const n = lastN, s = tsec(), t = fmt(s), w = wallBroken, b = tntGot, i = iceGot, cur = { n, t, s, w, b, i, at: Date.now() };
@@ -948,7 +969,15 @@
             setLB(d.slice(0, 50));
             E.goSave.disabled = 1; alert("Score saved!");
         };
+
+        // extra tombol leaderboard
+        E.lbReset.onclick = _ => confirm("Reset leaderboard?") && (setLB([]), setHist([]), showLB(), alert("Leaderboard berhasil direset!"));
+        E.playAgain.onclick = _ => { openOv(E.lbOv, 0); E.name.value = lastN; E.level.value = lastL; E.play.disabled = 0; startGame(); };
+
+        // awal: pastikan di home
+        home();
     </script>
+
 </body>
 
 </html>
