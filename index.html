@@ -641,8 +641,10 @@
 
     <script>
         const $ = id => document.getElementById(id), Q = s => document.querySelector(s);
+
+        // kumpulan elemen ui
         const E = {
-            name: $("name"), level: $("level"), play: $("play"), welcome: $("welcome"), game: $("game"), board: $("board"),
+            name: $("name"), level: $("level"), play: $("play"), welcome: $("welcome"), game: $("game"), board: $("board"), 
             instrOv: $("instrOv"), lbOv: $("lbOv"), cdOv: $("cdOv"), goOv: $("goOv"), pauseOv: $("pauseOv"),
             countNum: $("countNum"), hudName: $("hudName"), hudTime: $("hudTime"), hearts: $("hearts"),
             cWall: $("cWall"), cTnt: $("cTnt"), cIce: $("cIce"), lbRows: $("lbRows"),
@@ -650,16 +652,35 @@
             lbHome: $("lbHome"), btnContinue: $("btnContinue"), btnHome: $("btnHome"),
             lbClose: $("lbClose"), playAgain: $("playAgain"), lbReset: $("lbReset")
         };
+
+        // key penyimpanan
         const KEY_LB = "BOMBSKUY_LB", KEY_HIST = "BOMBSKUY_HISTORY";
+
+        // Helper localStorage (get & set JSON)
         const J = { g: k => JSON.parse(localStorage.getItem(k) || "[]"), s: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
+
+        // Ambil & simpan leaderboard
         const getLB = _ => J.g(KEY_LB), setLB = a => J.s(KEY_LB, a);
+
+        // Ambil & simpan history
         const getHist = _ => J.g(KEY_HIST), setHist = a => J.s(KEY_HIST, a);
+
+        // Buka / tutup overlay
         const open = (o, on) => o.classList.toggle("on", !!on);
 
-        const W = 11, H = 9, T = 67, SAFE = [[1, 1], [2, 1], [3, 1], [1, 2], [1, 3]];
+        // konfigurasi map ,tinggi,lebar,ukuran tile (px)
+        const W = 11, H = 9, T = 67, 
+        
+        // area aman player
+        SAFE = [[1, 1], [2, 1], [3, 1], [1, 2], [1, 3]];
+        
+        // cek posisi apakah aman
         const inSafe = (x, y) => SAFE.some(p => p[0] == x && p[1] == y);
+
+        // jumlah musuh berdasarkan level
         const dogCount = l => ({ Easy: 1, Medium: 2, Hard: 3 }[l] || 1);
 
+        // state game
         let map = [], brickEl = [], hiddenItem = [], items = [], bombs = [], player, dogs = [],
             tick = 0, ai = 0, hp = 3, freeze = 0, range = 1, wallBroken = 0, tntGot = 0, iceGot = 0, iceOL = 0, inv = 0,
             mark = 0, mt = 0, run = 0, ended = 0, paused = 0, ctx = "home", lastN = "", lastL = "", total = 0;
@@ -669,22 +690,42 @@
         const tsec = _ => ((elapsedMs + (run && !paused ? Date.now() - t0 : 0)) / 1000 | 0);
         const fmt = s => `${String(s / 60 | 0).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
+
         const SRC = {
             bomb: "assets/images/bomb.png", exp: "assets/images/explosion.png", heart: "assets/images/heart.png",
             tnt: "assets/images/tnt.png", ice: "assets/images/ice.png", hf: "assets/images/heart_full.png", he: "assets/images/heart_empty.png", wc: "assets/images/wall_crack.png"
         };
 
+        // cek apakah bisa play 
         const canPlay = _ => E.name.value.trim() && E.level.value;
+
+        // Aktif/nonaktif tombol play
         E.name.oninput = _ => E.play.disabled = !canPlay();
         E.level.onchange = _ => { E.level.blur(); E.play.disabled = !canPlay() };
 
+        // Tombol instruction → buka overlay instruksi
         $("instr").onclick = _ => open(E.instrOv, 1);
+
+        // Tombol leaderboard dari HOME
+        // set context = home, tampilkan leaderboard, buka overlay LB
         $("lb").onclick = _ => { ctx = "home"; showLB(); open(E.lbOv, 1) };
+
+        // Tombol leaderboard dari GAME OVER
+        // context = go, tutup game over, buka leaderboard
         $("goLB").onclick = _ => { ctx = "go"; showLB(); open(E.goOv, 0); open(E.lbOv, 1) };
+
+        // Tombol close leaderboard
+        // kalau dari game over → balik ke game over
+        // kalau dari home → balik ke home
         E.lbClose.onclick = _ => { open(E.lbOv, 0); ctx == "go" ? open(E.goOv, 1) : home() };
+
+        // Tombol home di leaderboard → kembali ke home
         E.lbHome.onclick = _ => { open(E.lbOv, 0); home() };
+        
+        // Klik elemen dengan atribut data-close → tutup instruksi
         addEventListener("click", e => e.target.matches("[data-close]") && open(E.instrOv, 0));
 
+        // Membuat sprite (img) di posisi grid (x,y)
         const addSprite = (src, x, y, cls = "sprite") => {
             const img = document.createElement("img");
             img.src = src; img.className = `entity ${cls}`;
@@ -692,14 +733,21 @@
             E.board.appendChild(img); return img;
         };
 
+        // Render nyawa (heart penuh / kosong)
         const renderHearts = _ => E.hearts.innerHTML = Array.from({ length: 3 }, (_, i) => `<img src="${i < hp ? SRC.hf : SRC.he}" alt="">`).join("");
+
+        // Animasi kena damage (shake / flash)
         const hitAni = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(_ => el.classList.remove(cls), 280) };
 
+        // Pasang icon efek (heart / TNT / ice) 
         const setMark = src => {
+            // di atas kepala player
             mark && mark.remove(); clearTimeout(mt);
+            // Jika ada src → buat mark baru
             mark = src ? addSprite(src, player.x, player.y, "mark") : 0;
-            if (!mark) return;
+            // Posisi mark di atas player
             mark.style.left = player.x * T + T * .38 + "px"; mark.style.top = player.y * T - 2 + "px";
+            // Mark hilang otomatis setelah 5 detik
             mt = setTimeout(_ => { mark && mark.remove(); mark = 0 }, 5000);
         };
         const updMark = _ => mark && (mark.style.left = player.x * T + T * .38 + "px", mark.style.top = player.y * T - 2 + "px");
