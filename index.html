@@ -750,14 +750,24 @@
             // Mark hilang otomatis setelah 5 detik
             mt = setTimeout(_ => { mark && mark.remove(); mark = 0 }, 5000);
         };
+
+        // Update posisi mark saat player bergerak
         const updMark = _ => mark && (mark.style.left = player.x * T + T * .38 + "px", mark.style.top = player.y * T - 2 + "px");
 
+        // home/reset game
+
         function home() {
+        // Reset status game
             paused = run = ended = 0;
+            // Tutup semua overlay
             [E.pauseOv, E.goOv, E.cdOv, E.instrOv, E.lbOv].forEach(x => open(x, 0));
+            // Tampilkan layar welcome
             E.welcome.classList.remove("hidden"); E.game.classList.add("hidden");
+            // Hentikan AI dan timer
             clearInterval(ai); clearInterval(tick); ctx = "home";
         }
+
+        // leadernboard
 
         function showLB() {
             const d = getLB().slice().sort((a, b) => (b.w - a.w) || (b.b - a.b) || (b.i - a.i) || (a.s - b.s));
